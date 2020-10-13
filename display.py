@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import epd1in54  # ws driver
 import time  # time functions
 import locale
 import requests
@@ -17,6 +16,21 @@ svdrhost=''
 
 #openweather api
 def owr_update():
+    """Get weatherupdate from openweathermap
+    
+    Returns:
+    int: wcondition
+    float: wtemp
+    float:  wpressure
+    int: whum
+    float: wwindspeed
+    int:  wclouds
+    timestamp: wtime
+    timestamp: wsunrise
+    timestamp: wsunset
+    timestamp: owrtime	
+    
+    """
     owr = requests.get('http://api.openweathermap.org/data/2.5/weather?id=' + owmcityid + '&units=metric&APPID=' + owmappid)
     if owr.status_code == 200:
         owrj = owr.json()
@@ -143,7 +157,7 @@ def display():
     }
     LANG = locale.getdefaultlocale()
     locale.setlocale(locale.LC_TIME, LANG)
-    ws = epd1in54.EPD()
+    ws = epd2in13.EPD()
     ws.init(ws.lut_full_update)
 #   clear frame twice
     whole_image = Image.new('1', (128, 296), 255)
