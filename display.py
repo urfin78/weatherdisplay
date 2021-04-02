@@ -11,11 +11,11 @@ import svdr
 from datetime import datetime, timedelta
 import epd2in13
 
-owmcityid=''
-owmappid=''
-svdrhost=''
+owmcityid = ''
+owmappid = ''
+svdrhost = ''
 
-#openweather api
+# openweather api
 def owr_update():
     """Get weatherupdate from openweathermap
     
@@ -29,10 +29,13 @@ def owr_update():
     timestamp: wtime
     timestamp: wsunrise
     timestamp: wsunset
-    timestamp: owrtime	
+    timestamp: owrtime
     
     """
-    owr = requests.get('http://api.openweathermap.org/data/2.5/weather?id=' + owmcityid + '&units=metric&APPID=' + owmappid)
+    owr = requests.get('http://api.openweathermap.org/data/2.5/weather?id='
+                        + owmcityid
+                        + '&units=metric&APPID='
+                        + owmappid)
     if owr.status_code == 200:
         owrj = owr.json()
         wcondition = owrj["weather"][0]["id"]
@@ -56,7 +59,9 @@ class owr_forecast:
         # forecast api provides 3hour forecast 5 days so id 0 is next hour
         # and 1 nextfull+3 hours and 2 nextfull+6v and so on,
         # id 39 should be nexthour+117
-        self.owr = requests.get('http://api.openweathermap.org/data/2.5/forecast?id=' + owmcityid + '&units=metric&APPID=' + owmappid)
+        self.owr = requests.get('http://api.openweathermap.org/data/2.5/forecast?id='
+                                + owmcityid + '&units=metric&APPID='
+                                + owmappid)
         if self.owr.status_code == 200:
             self.owrj = self.owr.json()
             self.owrtime = time.time()
@@ -174,7 +179,6 @@ def display():
     wfontsmall = ImageFont.truetype('', 24)
     font = ImageFont.truetype('', 48)
     fontmedium = ImageFont.truetype('', 40)
-    fontsmall = ImageFont.truetype('', 24)
     fontvsmall = ImageFont.truetype('', 13)
     tchannel = 'unbekannt.bmp'
     tstartdate = ''
@@ -258,7 +262,7 @@ def display():
             tstarttime = timer.nexttimer.start.strftime('%H:%M')
             ttext = timer.nexttimer.text
             timer.close_connection
-        except:
+        except Exception:
             pass
         logo = Image.open(tchannel)
         logo = logo.convert('1')
