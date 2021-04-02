@@ -9,6 +9,7 @@ from PIL import ImageFont  # image functions
 import PIL.ImageOps
 import svdr
 from datetime import datetime, timedelta
+import epd2in13
 
 owmcityid=''
 owmappid=''
