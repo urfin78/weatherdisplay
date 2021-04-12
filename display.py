@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import epd2in9  # ws driver
+import epdconfig
 import time  # time functions
 import locale
 import requests
@@ -8,17 +10,28 @@ from PIL import ImageDraw  # image functions
 from PIL import ImageFont  # image functions
 import PIL.ImageOps
 import svdr
+import prometheus
 from datetime import datetime, timedelta
-import epd2in13
+import configparser
 
-owmcityid = ''
-owmappid = ''
-svdrhost = ''
+config = configparser.ConfigParser()
+config.read("config.ini")
+owmcityid = config['owm']['cityi']
+owmappid = config['owm']['appid']
+promhost = config['prometheus']['host']
+promport = config['prometheus']['port']
+promdssl = config['prometheus']['disablessl']
+svdrhost = config['svdr']['host']
+wfontfile = config['fonts']['wfont']
+wfontsmallfile = config['fonts']['wfontsmall']
+fontfile = config['fonts']['font']
+fontmediumfile = config['fonts']['fontmedium']
+fontvsmallfile = config['fonts']['fonttvsmall']
 
 # openweather api
 def owr_update():
     """Get weatherupdate from openweathermap
-    
+ 
     Returns:
     int: wcondition
     float: wtemp
@@ -30,12 +43,11 @@ def owr_update():
     timestamp: wsunrise
     timestamp: wsunset
     timestamp: owrtime
-    
+
     """
-    owr = requests.get('http://api.openweathermap.org/data/2.5/weather?id='
-                        + owmcityid
-                        + '&units=metric&APPID='
-                        + owmappid)
+    owr = requests.get('http://api.openweathermap.org/data/2.5/weather?id=' 
+                       + owmcityid + '&units=metric&APPID='
+                       + owmappid)
     if owr.status_code == 200:
         owrj = owr.json()
         wcondition = owrj["weather"][0]["id"]
@@ -79,6 +91,15 @@ class owr_forecast:
         self.wclouds = self.owrj["list"][hour]["clouds"]["all"]  # int
         self.wtime = self.owrj["list"][hour]["dt"]  # timestamp
 #        self.wsnow = self.owrj["list"][hour]["snow"]["3h"]  # float
+
+def clear_display():
+    ws = epd2in9.EPD()
+    ws.init(ws.lut_full_update)
+    whole_image = Image.new('1', (ws.width, ws.height), 255)
+    image_width, image_height = whole_image.size
+    draw = ImageDraw.Draw(whole_image)
+    draw.rectangle((0, 0, image_width, image_height), fill=255)
+    ws.Clear(0xFF)
 
 
 def display():
@@ -163,18 +184,12 @@ def display():
     }
     LANG = locale.getdefaultlocale()
     locale.setlocale(locale.LC_TIME, LANG)
-    ws = epd2in13.EPD()
-    ws.init(ws.lut_full_update)
-#   clear frame twice
-    whole_image = Image.new('1', (128, 296), 255)
-    image_width, image_height = whole_image.size
-    draw = ImageDraw.Draw(whole_image)
-    draw.rectangle((0, 0, image_width, image_height), fill=255)
-    ws.set_frame_memory(whole_image, 0, 0)
-    ws.display_frame()
-    ws.set_frame_memory(whole_image, 0, 0)
-    ws.display_frame()
+    clear_display()
+    clear_display()
     wcondition, wtemp, wpressure, whum, wwindspeed, wclouds, wtime, wsunrise, wsunset, owrtime = owr_update()
+    prom = prometheus.my_prometheus(promhost, promport, promdssl)
+    prom.prom_query("")
+    promtemp = float(prom.lasttemp)
     wfont = ImageFont.truetype('', 48)
     wfontsmall = ImageFont.truetype('', 24)
     font = ImageFont.truetype('', 48)
@@ -184,15 +199,23 @@ def display():
     tstartdate = ''
     tstarttime = ''
     ttext = ''
+    wsc = epdconfig.RaspberryPi()
+    ws = epd2in9.EPD()
     ws.init(ws.lut_partial_update)
-    whole_image = Image.new('1', (128, 296), 255)
+    whole_image = Image.new('1', (ws.width, ws.height), 255)
     draw = ImageDraw.Draw(whole_image)
     image_width, image_height = whole_image.size
     forecast = owr_forecast()
+    runningtime = time.time()
     while (True):
-        # read new temperature 15min
+        # read new temperature after 15min
         if time.time()-owrtime > 900:
             wcondition, wtemp, wpressure, whum, wwindspeed, wclouds, wtime, wsunrise, wsunset, owrtime = owr_update()
+        #clear screen after 1h
+        if time.time()-runningtime > 3600:
+            clear_display()
+            ws.init(ws.lut_partial_update)
+            runningtime = time.time()
         # whole image blank
         draw.rectangle((0, 0, image_width, image_height), fill=255)
         # draw 3 separating lines
@@ -215,10 +238,10 @@ def display():
                 draw.text((3, 79), owridnight[wcondition], font=wfont, fill=0)
         else:
             draw.text((3, 79), owrid[wcondition], font=wfont, fill=0)
-        if (wtemp < 0):
-            draw.text((58, 85), str(wtemp), font=fontmedium, fill=0)
+        if (round(promtemp) < 0):
+            draw.text((58, 85), str(round(promtemp)), font=fontmedium, fill=0)
         else:
-            draw.text((70, 85), str(wtemp), font=fontmedium, fill=0)
+            draw.text((70, 85), str(round(promtemp)), font=fontmedium, fill=0)
         if (-10 < wtemp < 10):
             draw.text((90, 85), '*', font=wfontsmall, fill=0)
         else:
@@ -262,7 +285,7 @@ def display():
             tstarttime = timer.nexttimer.start.strftime('%H:%M')
             ttext = timer.nexttimer.text
             timer.close_connection
-        except Exception:
+        except:
             pass
         logo = Image.open(tchannel)
         logo = logo.convert('1')
@@ -270,11 +293,10 @@ def display():
         draw.text((72, 255), tstarttime, font=fontvsmall, fill=0)
         draw.text((3, 278), ttext, font=fontvsmall, fill=0)
         # push drawing into memory and show it
-        ws.set_frame_memory(whole_image, 0, 0)
-        ws.set_frame_memory(logo, 8, 225)
-        ws.display_frame()
-        ws.delay_ms(10000)
+        ws.display(ws.getbuffer(whole_image))
+        wsc.delay_ms(10000)
 
 
 if __name__ == '__main__':
     display()
+
