@@ -89,6 +89,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+wvenv/
 
 # Spyder project settings
 .spyderproject
@@ -105,3 +106,6 @@ venv.bak/
 
 #BMP Images
 .bmp
+
+#config
+config.ini
