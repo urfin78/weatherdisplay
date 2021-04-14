@@ -16,7 +16,7 @@ import configparser
 
 config = configparser.ConfigParser()
 config.read("config.ini")
-owmcityid = config['owm']['cityi']
+owmcityid = config['owm']['cityid']
 owmappid = config['owm']['appid']
 promhost = config['prometheus']['host']
 promport = config['prometheus']['port']
@@ -26,7 +26,7 @@ wfontfile = config['fonts']['wfont']
 wfontsmallfile = config['fonts']['wfontsmall']
 fontfile = config['fonts']['font']
 fontmediumfile = config['fonts']['fontmedium']
-fontvsmallfile = config['fonts']['fonttvsmall']
+fontvsmallfile = config['fonts']['fontvsmall']
 
 # openweather api
 def owr_update():
@@ -190,11 +190,11 @@ def display():
     prom = prometheus.my_prometheus(promhost, promport, promdssl)
     prom.prom_query("")
     promtemp = float(prom.lasttemp)
-    wfont = ImageFont.truetype('', 48)
-    wfontsmall = ImageFont.truetype('', 24)
-    font = ImageFont.truetype('', 48)
-    fontmedium = ImageFont.truetype('', 40)
-    fontvsmall = ImageFont.truetype('', 13)
+    wfont = ImageFont.truetype(wfontfile, 48)
+    wfontsmall = ImageFont.truetype(wfontsmallfile, 24)
+    font = ImageFont.truetype(fontfile, 48)
+    fontmedium = ImageFont.truetype(fontmediumfile, 40)
+    fontvsmall = ImageFont.truetype(fontvsmallfile, 13)
     tchannel = 'unbekannt.bmp'
     tstartdate = ''
     tstarttime = ''
@@ -206,16 +206,20 @@ def display():
     draw = ImageDraw.Draw(whole_image)
     image_width, image_height = whole_image.size
     forecast = owr_forecast()
-    runningtime = time.time()
+    clearrunningtime = time.time()
+    refreshrunningtime = time.time()
     while (True):
         # read new temperature after 15min
-        if time.time()-owrtime > 900:
+        if time.time()-refreshrunningtime > 900:
             wcondition, wtemp, wpressure, whum, wwindspeed, wclouds, wtime, wsunrise, wsunset, owrtime = owr_update()
+            prom.prom_query("")
+            promtemp = float(prom.lasttemp)
+            refreshrunningtime = time.time()
         #clear screen after 1h
-        if time.time()-runningtime > 3600:
+        if time.time()-clearrunningtime > 3600:
             clear_display()
             ws.init(ws.lut_partial_update)
-            runningtime = time.time()
+            clearrunningtime = time.time()
         # whole image blank
         draw.rectangle((0, 0, image_width, image_height), fill=255)
         # draw 3 separating lines
