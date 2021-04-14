@@ -206,17 +206,20 @@ def display():
     draw = ImageDraw.Draw(whole_image)
     image_width, image_height = whole_image.size
     forecast = owr_forecast()
-    runningtime = time.time()
+    clearrunningtime = time.time()
+    refreshrunningtime = time.time()
     while (True):
         # read new temperature after 15min
-        if time.time()-owrtime > 900:
+        if time.time()-refreshrunningtime > 900:
             wcondition, wtemp, wpressure, whum, wwindspeed, wclouds, wtime, wsunrise, wsunset, owrtime = owr_update()
             prom.prom_query("")
+            promtemp = float(prom.lasttemp)
+            refreshrunningtime = time.time()
         #clear screen after 1h
-        if time.time()-runningtime > 3600:
+        if time.time()-clearrunningtime > 3600:
             clear_display()
             ws.init(ws.lut_partial_update)
-            runningtime = time.time()
+            clearrunningtime = time.time()
         # whole image blank
         draw.rectangle((0, 0, image_width, image_height), fill=255)
         # draw 3 separating lines
