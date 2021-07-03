@@ -7,7 +7,7 @@ isort==5.9.1
 lazy-object-proxy==1.6.0
 mccabe==0.6.1
 Pillow==8.3.0
-pylint==2.9.0
+pylint==2.9.3
 requests==2.25.1
 RPi.GPIO==0.7.0
 six==1.16.0
