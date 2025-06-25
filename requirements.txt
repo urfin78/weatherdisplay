@@ -13,5 +13,5 @@ requests==2.32.4
 RPi.GPIO==0.7.1
 six==1.16.0
 spidev==3.7
-tzlocal==5.2
+tzlocal==5.3.1
 urllib3==2.5.0
