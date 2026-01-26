@@ -9,7 +9,7 @@ prometheus-api-client==0.6.0
 python-dateutil==2.9.0.post0
 pytz==2025.2
 regex==2025.7.34
-requests==2.32.4
+requests==2.32.5
 RPi.GPIO==0.7.1
 six==1.17.0
 spidev==3.7
