@@ -14,4 +14,4 @@ RPi.GPIO==0.7.1
 six==1.17.0
 spidev==3.7
 tzlocal==5.3.1
-urllib3==2.5.0
+urllib3==2.6.3
