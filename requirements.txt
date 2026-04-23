@@ -1,7 +1,7 @@
 certifi==2026.2.25
 charset-normalizer==3.4.7
 dateparser==1.4.0
-idna==3.11
+idna==3.13
 numpy==2.4.4
 pandas==3.0.2
 Pillow==12.2.0
