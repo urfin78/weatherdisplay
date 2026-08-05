@@ -7,7 +7,7 @@ pandas==3.0.5
 Pillow==12.3.0
 prometheus-api-client==0.7.2
 python-dateutil==2.9.0.post0
-pytz==2026.2
+pytz==2026.3.post1
 regex==2026.7.19
 requests==2.34.2
 RPi.GPIO==0.7.1
