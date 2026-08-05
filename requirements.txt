@@ -2,7 +2,7 @@ certifi==2026.7.22
 charset-normalizer==3.4.9
 dateparser==1.4.1
 idna==3.18
-numpy==2.4.4
+numpy==2.5.1
 pandas==3.0.5
 Pillow==12.3.0
 prometheus-api-client==0.7.2
