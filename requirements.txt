@@ -1,6 +1,6 @@
 certifi==2026.7.22
 charset-normalizer==3.4.9
-dateparser==1.4.1
+dateparser==1.4.2
 idna==3.18
 numpy==2.5.1
 pandas==3.0.5
